@@ -43,7 +43,7 @@
       border-radius: 10px;
       margin-bottom: 0.5em;
     }
-    .comment-btn {
+    .comment-btn, .submit-comment-btn {
       background: #a3c1ad;
       color: white;
       border: none;
@@ -51,25 +51,38 @@
       padding: 0.4em 0.8em;
       cursor: pointer;
       font-size: 0.9em;
+      margin-top: 0.5em;
     }
     .comment-box {
       margin-top: 0.8em;
       width: 100%;
       display: none;
     }
+    .comment-box input[type="text"],
     .comment-box textarea {
       width: 100%;
-      border-radius: 6px;
-      padding: 0.7em;
+      margin-bottom: 0.5em;
+      padding: 0.6em;
       border: 1px solid #ccc;
-      font-size: 0.95em;
-      resize: vertical;
+      border-radius: 6px;
+      font-size: 0.9em;
       box-sizing: border-box;
     }
-    .comment-box textarea:focus {
+    .comment-box textarea:focus,
+    .comment-box input[type="text"]:focus {
       outline: none;
       border-color: #a3c1ad;
       box-shadow: 0 0 0 2px rgba(163, 193, 173, 0.2);
+    }
+    .timestamp {
+      margin-top: -0.3em;
+      font-size: 0.8em;
+      color: #666;
+    }
+    .comment-entry {
+      border-top: 1px solid #eee;
+      padding-top: 0.5em;
+      margin-top: 0.5em;
     }
     audio {
       position: fixed;
@@ -92,7 +105,6 @@
   <script>
     const gallery = document.getElementById('gallery');
 
-    // 自动生成16张照片
     for (let i = 1; i <= 16; i++) {
       const src = `images/photo${i}.jpg`;
 
@@ -109,29 +121,68 @@
       const commentBox = document.createElement('div');
       commentBox.className = 'comment-box';
 
-      const textarea = document.createElement('textarea');
-      textarea.placeholder = '留下你的心声...';
+      const commentList = document.createElement('div');
+      commentList.className = 'comment-list';
 
-      const key = 'comment_' + src;
-      const saved = localStorage.getItem(key);
-      if (saved) textarea.value = saved;
+      const key = 'comments_' + src;
+      const savedComments = JSON.parse(localStorage.getItem(key)) || [];
 
-      textarea.addEventListener('input', () => {
-        localStorage.setItem(key, textarea.value);
+      function renderComments() {
+        commentList.innerHTML = '';
+        savedComments.forEach(c => {
+          const entry = document.createElement('div');
+          entry.className = 'comment-entry';
+          entry.innerHTML = `<strong>${c.name || '匿名'}：</strong> ${c.text}<div class='timestamp'>${c.time}</div>`;
+          commentList.appendChild(entry);
+        });
+      }
+
+      function addNewComment() {
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.placeholder = '你的名字';
+
+        const textarea = document.createElement('textarea');
+        textarea.placeholder = '留下你的心声...';
+
+        const submitBtn = document.createElement('button');
+        submitBtn.className = 'submit-comment-btn';
+        submitBtn.textContent = '发送留言';
+
+        submitBtn.addEventListener('click', () => {
+          const now = new Date();
+          const newComment = {
+            name: nameInput.value.trim(),
+            text: textarea.value.trim(),
+            time: now.toLocaleString('zh-CN')
+          };
+          if (newComment.text) {
+            savedComments.push(newComment);
+            localStorage.setItem(key, JSON.stringify(savedComments));
+            renderComments();
+            nameInput.value = '';
+            textarea.value = '';
+          }
+        });
+
+        commentBox.appendChild(nameInput);
+        commentBox.appendChild(textarea);
+        commentBox.appendChild(submitBtn);
+      }
+
+      renderComments();
+      commentBtn.addEventListener('click', () => {
+        commentBox.style.display = 'block';
+        addNewComment();
       });
 
-      commentBox.appendChild(textarea);
       wrapper.appendChild(img);
       wrapper.appendChild(commentBtn);
       wrapper.appendChild(commentBox);
-
-      commentBtn.onclick = () => {
-        commentBox.style.display = commentBox.style.display === 'none' ? 'block' : 'none';
-      };
+      wrapper.appendChild(commentList);
 
       gallery.appendChild(wrapper);
     }
   </script>
 </body>
 </html>
-
