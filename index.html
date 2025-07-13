@@ -102,22 +102,11 @@
     浏览器不支持播放音频。
   </audio>
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCeTGxouW3bZ1Nxd0zJlARtd8AfwKalS_o",
-      authDomain: "memory-book-86635.firebaseapp.com",
-      projectId: "memory-book-86635",
-      storageBucket: "memory-book-86635.firebasestorage.app",
-      messagingSenderId: "182443520468",
-      appId: "1:182443520468:web:9aceb3f9d6c0b4d852e641"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
     const gallery = document.getElementById('gallery');
 
     for (let i = 1; i <= 16; i++) {
       const photoId = `photo${i}`;
-      const src = `photos/${photoId}.jpg`;
+      const src = `images/${photoId}.jpg`;
       const wrapper = document.createElement('div');
       wrapper.className = 'photo-item';
 
@@ -171,6 +160,17 @@
             textarea.value = '';
           }
         });
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyCeTGxouW3bZ1Nxd0zJlARtd8AfwKalS_o",
+          authDomain: "memory-book-86635.firebaseapp.com",
+          projectId: "memory-book-86635",
+          storageBucket: "memory-book-86635.firebasestorage.app",
+          messagingSenderId: "182443520468",
+          appId: "1:182443520468:web:9aceb3f9d6c0b4d852e641"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
         commentBox.appendChild(nameInput);
         commentBox.appendChild(textarea);
