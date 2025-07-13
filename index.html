@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>静心四班留念册</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -94,20 +96,28 @@
 </head>
 <body>
   <header>静心学堂｜英国四班</header>
-
   <div id="gallery"></div>
-
   <audio controls autoplay loop>
     <source src="csf.mp3" type="audio/mpeg">
     浏览器不支持播放音频。
   </audio>
-
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCeTGxouW3bZ1Nxd0zJlARtd8AfwKalS_o",
+      authDomain: "memory-book-86635.firebaseapp.com",
+      projectId: "memory-book-86635",
+      storageBucket: "memory-book-86635.firebasestorage.app",
+      messagingSenderId: "182443520468",
+      appId: "1:182443520468:web:9aceb3f9d6c0b4d852e641"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     const gallery = document.getElementById('gallery');
 
     for (let i = 1; i <= 16; i++) {
-      const src = `images/photo${i}.jpg`;
-
+      const photoId = `photo${i}`;
+      const src = `images/${photoId}.jpg`;
       const wrapper = document.createElement('div');
       wrapper.className = 'photo-item';
 
@@ -124,20 +134,19 @@
       const commentList = document.createElement('div');
       commentList.className = 'comment-list';
 
-      const key = 'comments_' + src;
-      const savedComments = JSON.parse(localStorage.getItem(key)) || [];
-
-      function renderComments() {
+      async function renderComments() {
+        const snapshot = await db.collection(photoId).orderBy("time").get();
         commentList.innerHTML = '';
-        savedComments.forEach(c => {
+        snapshot.forEach(doc => {
+          const c = doc.data();
           const entry = document.createElement('div');
           entry.className = 'comment-entry';
-          entry.innerHTML = `<strong>${c.name || '匿名'}：</strong> ${c.text}<div class='timestamp'>${c.time}</div>`;
+          entry.innerHTML = `<strong>${c.name || '匿名'}：</strong> ${c.text}<div class='timestamp'>${new Date(c.time.seconds * 1000).toLocaleString('zh-CN')}</div>`;
           commentList.appendChild(entry);
         });
       }
 
-      function addNewComment() {
+      function addNewCommentBox() {
         const nameInput = document.createElement('input');
         nameInput.type = 'text';
         nameInput.placeholder = '你的名字';
@@ -149,16 +158,14 @@
         submitBtn.className = 'submit-comment-btn';
         submitBtn.textContent = '发送留言';
 
-        submitBtn.addEventListener('click', () => {
-          const now = new Date();
+        submitBtn.addEventListener('click', async () => {
           const newComment = {
             name: nameInput.value.trim(),
             text: textarea.value.trim(),
-            time: now.toLocaleString('zh-CN')
+            time: new Date()
           };
           if (newComment.text) {
-            savedComments.push(newComment);
-            localStorage.setItem(key, JSON.stringify(savedComments));
+            await db.collection(photoId).add(newComment);
             renderComments();
             nameInput.value = '';
             textarea.value = '';
@@ -170,17 +177,17 @@
         commentBox.appendChild(submitBtn);
       }
 
-      renderComments();
       commentBtn.addEventListener('click', () => {
         commentBox.style.display = 'block';
-        addNewComment();
+        addNewCommentBox();
       });
+
+      renderComments();
 
       wrapper.appendChild(img);
       wrapper.appendChild(commentBtn);
       wrapper.appendChild(commentBox);
       wrapper.appendChild(commentList);
-
       gallery.appendChild(wrapper);
     }
   </script>
