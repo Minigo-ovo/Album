@@ -6,8 +6,8 @@
   <title>静心四班留念册</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f5f5f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9f9f9;
       margin: 0;
       padding: 0;
     }
@@ -16,46 +16,60 @@
       color: #fff;
       text-align: center;
       padding: 1em 0;
-      font-size: 1.5em;
+      font-size: 1.8em;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     #gallery {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 1em;
-      padding: 1em;
+      gap: 1.5em;
+      padding: 1.5em;
     }
     .photo-item {
-      position: relative;
       background: white;
-      padding: 0.5em;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      padding: 1em;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       max-width: 90vw;
-      width: 300px;
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     .photo-item img {
       width: 100%;
       height: auto;
-      border-radius: 8px;
+      border-radius: 10px;
+      margin-bottom: 0.5em;
     }
     .comment-btn {
-      margin-top: 0.5em;
       background: #a3c1ad;
       color: white;
       border: none;
-      border-radius: 4px;
-      padding: 0.3em 0.6em;
+      border-radius: 6px;
+      padding: 0.4em 0.8em;
       cursor: pointer;
+      font-size: 0.9em;
     }
     .comment-box {
-      margin-top: 0.5em;
+      margin-top: 0.8em;
+      width: 100%;
       display: none;
     }
     .comment-box textarea {
       width: 100%;
-      border-radius: 4px;
-      padding: 0.5em;
+      border-radius: 6px;
+      padding: 0.7em;
+      border: 1px solid #ccc;
+      font-size: 0.95em;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .comment-box textarea:focus {
+      outline: none;
+      border-color: #a3c1ad;
+      box-shadow: 0 0 0 2px rgba(163, 193, 173, 0.2);
     }
     audio {
       position: fixed;
@@ -68,12 +82,7 @@
 <body>
   <header>静心学堂｜英国四班</header>
 
-  <div id="gallery">
-    <!-- 预设16张照片 -->
-    <!-- 请将照片放入 images/ 目录，命名为 photo1.jpg ~ photo16.jpg -->
-    <!-- 你可以替换 src 内容对应你的实际文件名 -->
-    <!-- 以下是自动生成的结构 -->
-  </div>
+  <div id="gallery"></div>
 
   <audio controls autoplay loop>
     <source src="csf.mp3" type="audio/mpeg">
@@ -94,14 +103,14 @@
       img.src = src;
 
       const commentBtn = document.createElement('button');
-      commentBtn.textContent = '留言';
+      commentBtn.textContent = '📝 写留言';
       commentBtn.className = 'comment-btn';
 
       const commentBox = document.createElement('div');
       commentBox.className = 'comment-box';
 
       const textarea = document.createElement('textarea');
-      textarea.placeholder = '请输入留言...';
+      textarea.placeholder = '留下你的心声...';
 
       const key = 'comment_' + src;
       const saved = localStorage.getItem(key);
