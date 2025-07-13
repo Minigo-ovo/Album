@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="zh">
 <head>
   <meta charset="UTF-8" />
@@ -45,7 +45,7 @@
       border-radius: 10px;
       margin-bottom: 0.5em;
     }
-    .comment-btn, .submit-comment-btn {
+    .comment-btn, .submit-comment-btn, .video-link-btn {
       background: #a3c1ad;
       color: white;
       border: none;
@@ -54,6 +54,7 @@
       cursor: pointer;
       font-size: 0.9em;
       margin-top: 0.5em;
+      text-decoration: none;
     }
     .comment-box {
       margin-top: 0.8em;
@@ -86,6 +87,10 @@
       padding-top: 0.5em;
       margin-top: 0.5em;
     }
+    #video-button-wrapper {
+      text-align: center;
+      padding-bottom: 3em;
+    }
     audio {
       position: fixed;
       bottom: 10px;
@@ -97,10 +102,17 @@
 <body>
   <header>静心学堂｜英国四班</header>
   <div id="gallery"></div>
+
+  <!-- ✅ 视频跳转按钮区域 -->
+  <div id="video-button-wrapper">
+    <a class="video-link-btn" href="videos/xt.mp4" target="_blank">▶️ 播放视频</a>
+  </div>
+
   <audio controls autoplay loop>
     <source src="csf.mp3" type="audio/mpeg">
     浏览器不支持播放音频。
   </audio>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCeTGxouW3bZ1Nxd0zJlARtd8AfwKalS_o",
@@ -112,6 +124,9 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+	
+	const bgm = document.querySelector('audio');
+	bgm.volume = 0.25;
 
     const gallery = document.getElementById('gallery');
 
