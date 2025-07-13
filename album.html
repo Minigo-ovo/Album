@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>静心四班留念册</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #a3c1ad;
+      color: #fff;
+      text-align: center;
+      padding: 1em 0;
+      font-size: 1.5em;
+    }
+    #gallery {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1em;
+      padding: 1em;
+    }
+    .photo-item {
+      position: relative;
+      background: white;
+      padding: 0.5em;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      max-width: 90vw;
+      width: 300px;
+    }
+    .photo-item img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+    .comment-btn {
+      margin-top: 0.5em;
+      background: #a3c1ad;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 0.3em 0.6em;
+      cursor: pointer;
+    }
+    .comment-box {
+      margin-top: 0.5em;
+      display: none;
+    }
+    .comment-box textarea {
+      width: 100%;
+      border-radius: 4px;
+      padding: 0.5em;
+    }
+    audio {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+  <header>静心学堂｜英国四班</header>
+
+  <div id="gallery">
+    <!-- 预设16张照片 -->
+    <!-- 请将照片放入 images/ 目录，命名为 photo1.jpg ~ photo16.jpg -->
+    <!-- 你可以替换 src 内容对应你的实际文件名 -->
+    <!-- 以下是自动生成的结构 -->
+  </div>
+
+  <audio controls autoplay loop>
+    <source src="csf.mp3" type="audio/mpeg">
+    浏览器不支持播放音频。
+  </audio>
+
+  <script>
+    const gallery = document.getElementById('gallery');
+
+    // 自动生成16张照片
+    for (let i = 1; i <= 16; i++) {
+      const src = `images/photo${i}.jpg`;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'photo-item';
+
+      const img = document.createElement('img');
+      img.src = src;
+
+      const commentBtn = document.createElement('button');
+      commentBtn.textContent = '留言';
+      commentBtn.className = 'comment-btn';
+
+      const commentBox = document.createElement('div');
+      commentBox.className = 'comment-box';
+
+      const textarea = document.createElement('textarea');
+      textarea.placeholder = '请输入留言...';
+
+      const key = 'comment_' + src;
+      const saved = localStorage.getItem(key);
+      if (saved) textarea.value = saved;
+
+      textarea.addEventListener('input', () => {
+        localStorage.setItem(key, textarea.value);
+      });
+
+      commentBox.appendChild(textarea);
+      wrapper.appendChild(img);
+      wrapper.appendChild(commentBtn);
+      wrapper.appendChild(commentBox);
+
+      commentBtn.onclick = () => {
+        commentBox.style.display = commentBox.style.display === 'none' ? 'block' : 'none';
+      };
+
+      gallery.appendChild(wrapper);
+    }
+  </script>
+</body>
+</html>
+
