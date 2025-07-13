@@ -6,7 +6,6 @@
   <title>静心四班留念册</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -21,38 +20,6 @@
       padding: 1em 0;
       font-size: 1.8em;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    #global-comment-section {
-      padding: 1em;
-      background: #f0f7f4;
-      border-bottom: 1px solid #ccc;
-    }
-    #global-comment-toggle {
-      background: #7fa998;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 0.4em 0.8em;
-      cursor: pointer;
-      font-size: 0.9em;
-    }
-    #global-comment-list {
-      margin-top: 1em;
-    }
-    .comment-box input[type="text"],
-    .comment-box textarea {
-      width: 100%;
-      margin-bottom: 0.5em;
-      padding: 0.6em;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 0.9em;
-      box-sizing: border-box;
-    }
-    .comment-entry {
-      border-top: 1px solid #eee;
-      padding-top: 0.5em;
-      margin-top: 0.5em;
     }
     #gallery {
       display: flex;
@@ -78,7 +45,7 @@
       border-radius: 10px;
       margin-bottom: 0.5em;
     }
-    .comment-btn, .submit-comment-btn, #upload-btn {
+    .comment-btn, .submit-comment-btn {
       background: #a3c1ad;
       color: white;
       border: none;
@@ -93,10 +60,31 @@
       width: 100%;
       display: none;
     }
+    .comment-box input[type="text"],
+    .comment-box textarea {
+      width: 100%;
+      margin-bottom: 0.5em;
+      padding: 0.6em;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.9em;
+      box-sizing: border-box;
+    }
+    .comment-box textarea:focus,
+    .comment-box input[type="text"]:focus {
+      outline: none;
+      border-color: #a3c1ad;
+      box-shadow: 0 0 0 2px rgba(163, 193, 173, 0.2);
+    }
     .timestamp {
       margin-top: -0.3em;
       font-size: 0.8em;
       color: #666;
+    }
+    .comment-entry {
+      border-top: 1px solid #eee;
+      padding-top: 0.5em;
+      margin-top: 0.5em;
     }
     audio {
       position: fixed;
@@ -108,30 +96,11 @@
 </head>
 <body>
   <header>静心学堂｜英国四班</header>
-
-  <!-- 公共留言板 -->
-  <div id="global-comment-section">
-    <button id="global-comment-toggle">显示留言板</button>
-    <div id="global-comments" style="display:none">
-      <div class="comment-box">
-        <input id="global-name" type="text" placeholder="你的名字">
-        <textarea id="global-text" placeholder="说几句话..."></textarea>
-        <button class="submit-comment-btn" id="submit-global-comment">发送留言</button>
-      </div>
-      <div id="global-comment-list"></div>
-    </div>
-  </div>
-
-  <!-- 上传图片 -->
-  <input type="file" id="imageUploader" accept="image/*" multiple>
-  <button id="upload-btn">上传图片</button>
-
   <div id="gallery"></div>
-
   <audio controls autoplay loop>
     <source src="csf.mp3" type="audio/mpeg">
+    浏览器不支持播放音频。
   </audio>
-
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCeTGxouW3bZ1Nxd0zJlARtd8AfwKalS_o",
@@ -143,29 +112,23 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const storage = firebase.storage();
+
     const gallery = document.getElementById('gallery');
 
-    // 上传图片
-    document.getElementById("upload-btn").onclick = async () => {
-      const files = document.getElementById("imageUploader").files;
-      for (let file of files) {
-        const id = `photo_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
-        const ref = storage.ref().child(`photos/${id}`);
-        await ref.put(file);
-        const url = await ref.getDownloadURL();
-        await db.collection("photoList").add({ id, url, time: new Date() });
-        createPhotoCard(id, url);
-      }
-    };
-
-    function createPhotoCard(photoId, src) {
+    for (let i = 1; i <= 16; i++) {
+      const photoId = `photo${i}`;
+      const src = `images/${photoId}.jpg`;
       const wrapper = document.createElement('div');
       wrapper.className = 'photo-item';
+
       const img = document.createElement('img');
       img.src = src;
-      const commentList = document.createElement('div');
-      commentList.className = 'comment-list';
+      img.onerror = () => {
+        img.alt = '❌ 图片加载失败，请检查路径';
+        img.style.border = '2px dashed red';
+        img.style.padding = '1em';
+        img.style.background = '#ffecec';
+      };
 
       const commentBtn = document.createElement('button');
       commentBtn.textContent = '📝 写留言';
@@ -173,12 +136,27 @@
 
       const commentBox = document.createElement('div');
       commentBox.className = 'comment-box';
-      commentBox.style.display = 'none';
 
-      commentBtn.addEventListener('click', () => {
-        commentBox.innerHTML = '';
-        commentBox.style.display = 'block';
+      const commentList = document.createElement('div');
+      commentList.className = 'comment-list';
 
+      async function renderComments() {
+        try {
+          const snapshot = await db.collection(photoId).orderBy("time").get();
+          commentList.innerHTML = '';
+          snapshot.forEach(doc => {
+            const c = doc.data();
+            const entry = document.createElement('div');
+            entry.className = 'comment-entry';
+            entry.innerHTML = `<strong>${c.name || '匿名'}：</strong> ${c.text}<div class='timestamp'>${new Date(c.time.seconds * 1000).toLocaleString('zh-CN')}</div>`;
+            commentList.appendChild(entry);
+          });
+        } catch (error) {
+          commentList.innerHTML = '<div style="color:red">⚠️ 无法加载留言：' + error.message + '</div>';
+        }
+      }
+
+      function addNewCommentBox() {
         const nameInput = document.createElement('input');
         nameInput.type = 'text';
         nameInput.placeholder = '你的名字';
@@ -207,68 +185,21 @@
         commentBox.appendChild(nameInput);
         commentBox.appendChild(textarea);
         commentBox.appendChild(submitBtn);
-      });
-
-      async function renderComments() {
-        const snapshot = await db.collection(photoId).orderBy("time").get();
-        commentList.innerHTML = '';
-        snapshot.forEach(doc => {
-          const c = doc.data();
-          const entry = document.createElement('div');
-          entry.className = 'comment-entry';
-          entry.innerHTML = `<strong>${c.name || '匿名'}：</strong> ${c.text}<div class='timestamp'>${new Date(c.time.seconds * 1000).toLocaleString('zh-CN')}</div>`;
-          commentList.appendChild(entry);
-        });
       }
 
+      commentBtn.addEventListener('click', () => {
+        commentBox.style.display = 'block';
+        addNewCommentBox();
+      });
+
       renderComments();
+
       wrapper.appendChild(img);
       wrapper.appendChild(commentBtn);
       wrapper.appendChild(commentBox);
       wrapper.appendChild(commentList);
       gallery.appendChild(wrapper);
     }
-
-    // 初始加载 Firebase 上的所有图片
-    async function loadAllPhotos() {
-      const snapshot = await db.collection("photoList").orderBy("time").get();
-      snapshot.forEach(doc => {
-        const { id, url } = doc.data();
-        createPhotoCard(id, url);
-      });
-    }
-    loadAllPhotos();
-
-    // 公共留言逻辑
-    const globalToggle = document.getElementById("global-comment-toggle");
-    const globalBox = document.getElementById("global-comments");
-    const globalList = document.getElementById("global-comment-list");
-    globalToggle.onclick = () => {
-      globalBox.style.display = globalBox.style.display === 'none' ? 'block' : 'none';
-      globalToggle.innerText = globalBox.style.display === 'none' ? '显示留言板' : '隐藏留言板';
-    }
-    document.getElementById("submit-global-comment").onclick = async () => {
-      const name = document.getElementById("global-name").value;
-      const text = document.getElementById("global-text").value;
-      if (text.trim()) {
-        await db.collection("global").add({ name, text, time: new Date() });
-        document.getElementById("global-name").value = '';
-        document.getElementById("global-text").value = '';
-        loadGlobalComments();
-      }
-    }
-    async function loadGlobalComments() {
-      const snapshot = await db.collection("global").orderBy("time").get();
-      globalList.innerHTML = '';
-      snapshot.forEach(doc => {
-        const c = doc.data();
-        const div = document.createElement("div");
-        div.className = "comment-entry";
-        div.innerHTML = `<strong>${c.name || '匿名'}：</strong> ${c.text}<div class='timestamp'>${new Date(c.time.seconds * 1000).toLocaleString('zh-CN')}</div>`;
-        globalList.appendChild(div);
-      });
-    }
-    loadGlobalComments();
   </script>
 </body>
 </html>
